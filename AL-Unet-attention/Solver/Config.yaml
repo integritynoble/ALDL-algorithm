@@ -1,0 +1,33 @@
+---
+# === Configure Main function === #
+category: Boatman
+data_name: Frame
+mask_name: Sensing
+model_name: AL
+
+#model_filename: Result/Model/Boatman-AL-T0319110808-K0.80L0.008-RMSE/models-0.0073-18000
+result_dir: Result
+result_model: Model
+result_data: Test-Result
+
+# === Configure CUP Handler === #
+# Data Assignment
+batch_size: 2
+epochs: 175
+patience: 800  #800
+learning_rate: 0.008
+lr_decay: 0.4
+lr_decay_epoch: 20
+lr_decay_interval: 30 
+loss_func: RMSE
+upbound: 1
+max_grad_norm: 5.0
+keep_rate_forward: 0.8
+
+# === Configure in CUP Model pipeline === #
+# Stride, Size
+num_stages: 11
+num_pattern: 7
+trans_dim: 16
+num_kernel: 16
+noise: 0.0001
