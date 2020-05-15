@@ -7,7 +7,7 @@ import time
 import sys
 import math
 
-from Lib.Train_Processing import *
+from Lib.Test_Processing import *
 from Lib.Utility import *
 from Solver.CUP_Model import Depth_Decoder
 from Solver.Base_Handler import Basement_Handler
@@ -92,116 +92,7 @@ class Decoder_Handler(Basement_Handler):
             with tf.variable_scope('Depth_Decoder', reuse=True):
                 self.Decoder_valid = Depth_Decoder(value_set,self.learning_rate,self.sess,self.model_config,is_training=False)
                 
-    def train(self):
-        self.sess.run(tf.global_variables_initializer())
-        print ('Training Started')
-        if self.model_config.get('model_filename',None) is not None:
-            self.restore()
-            print ('Pretrained Model Downloaded')
-        else:
-            print ('New Model Training')
-        epoch_cnt,wait,min_val_loss = 0,0,float('inf')
-        min_Tval_loss =min_val_loss
-        while epoch_cnt <= self.epochs:
-            
-            # Training Preparation: Learning rate pre=setting, Model Interface summary.
-            start_time = time.time()
-            cur_lr = self.calculate_scheduled_lr(epoch_cnt)
-            train_fetches = {'global_step': tf.train.get_or_create_global_step(), 
-                             'train_op':self.Decoder_train.train_op,
-                             'metrics':self.Decoder_train.metrics,
-                             'pred_orig':self.Decoder_train.decoded_image,
-                             'loss':self.Decoder_train.loss}
-            valid_fetches = {'global_step': tf.train.get_or_create_global_step(),
-                             'pred_orig':self.Decoder_valid.decoded_image,
-                             'metrics':self.Decoder_valid.metrics,
-                             'loss':self.Decoder_valid.loss}
-            Tresults,Vresults = {"loss":[],"psnr":[],"ssim":[],"mse":[]},{"loss":[],"psnr":[],"ssim":[],"mse":[]}
-            
-            # Framework and Visualization SetUp for Training 
-            for trained_batch in range(0,self.train_size): ###original train_size  here, test_size
-                (measure_train1,ground_train,mask_train,netinit_train,_) = next(self.gen_train)#self.gen_train.next()
-                measure_train=np.expand_dims(measure_train1,-1)
-                #phi_phi=np.matmul(np.transpose(mask_train,[1,2,3,0]),np.transpose(mask_train,[1,2,0,3]))
-                feed_dict_train = {self.meas_sample:measure_train, 
-                                   self.truth_sample:ground_train,              
-                                   self.initial_net:netinit_train,
-                                   self.sense_matrix:mask_train}
-                                   
-                train_output = self.sess.run(train_fetches,feed_dict=feed_dict_train)
-                Tresults["loss"].append(train_output['loss'])
-                Tresults["psnr"].append(train_output['metrics'][0])
-                Tresults["ssim"].append(train_output['metrics'][1])
-                Tresults["mse"].append(train_output['metrics'][2])
-                message = "Train Epoch [%2d/%2d] Batch [%d/%d] lr: %.4f, loss: %.8f psnr: %.4f" % (
-                    epoch_cnt, self.epochs, trained_batch, self.train_size, cur_lr, Tresults["loss"][-1], Tresults["psnr"][-1])
-                if trained_batch%10 == 0:
-                    print (message)
-                    
-            # Framework and Visualization SetUp for Validation
-            validation_time = []
-            for valided_batch in range(0,int(self.valid_size)): # the original: self.valid_size, the present:self.test_size
-                (measure_valid1,ground_valid,mask_valid,netinit_valid,index_valid) = next(self.gen_valid)#self.gen_train.next()
-                measure_valid=np.expand_dims(measure_valid1,-1)
-                #phi_phi=np.matmul(np.transpose(mask_valid,[1,2,3,0]),np.transpose(mask_valid,[1,2,0,3]))
-                feed_dict_valid = {self.meas_sample:measure_valid, 
-                                   self.truth_sample:ground_valid,                                  
-                                   self.initial_net:netinit_valid,
-                                   self.sense_matrix:mask_valid}
-                                   
-                start_time = time.time()
-                valid_output = self.sess.run(valid_fetches,feed_dict=feed_dict_valid)
-                end_time = time.time()
-                validation_time.append(end_time-start_time)
-                Vresults["loss"].append(valid_output['loss'])
-                Vresults["psnr"].append(valid_output['metrics'][0])
-                Vresults["ssim"].append(valid_output['metrics'][1])
-                Vresults["mse"].append(valid_output['metrics'][2])
-                message = "Valid Epoch [%2d/%2d] Batch [%d/%d] lr: %.4f, loss: %.8f psnr: %.4f" % (
-                    epoch_cnt, self.epochs, valided_batch, self.valid_size, cur_lr, Vresults["loss"][-1], Vresults["psnr"][-1])
-            print ('Validation Time:', validation_time)
-                    
-            # Information Logging for Model Training and Validation (Maybe for Curve Plotting)
-            Tloss,Vloss = np.mean(Tresults["loss"]),np.mean(Vresults["loss"])
-            train_psnr,valid_psnr = np.mean(Tresults["psnr"]),np.mean(Vresults["psnr"])
-            train_ssim,valid_ssim = np.mean(Tresults["ssim"]),np.mean(Vresults["ssim"])
-            train_mse, valid_mse  = np.mean(Tresults["mse"]), np.mean(Vresults["mse"])
-            summary_format = ['loss/train_loss','loss/valid_loss','metric/train_psnr','metric/train_ssim',
-                              'metric/valid_psnr','metric/valid_ssim']
-            summary_data = [Tloss, Vloss, train_psnr, train_ssim, valid_psnr, valid_ssim]
-            self.summary_logging(train_output['global_step'], summary_format, summary_data)
-            end_time = time.time()
-            message = 'Epoch [%3d/%3d] Train(Valid) loss: %.4f(%.4f), T PSNR(MSE) %s(%s), V PSNR(MSE) %s(%s), time %s' % (
-                epoch_cnt, self.epochs, Tloss, Vloss, train_psnr, train_mse, valid_psnr, valid_mse, np.mean(validation_time))
-            self.logger.info(message)
-            
-            if epoch_cnt%10 == 0 or Vloss <= min_val_loss: #original 10, here 1
-                matcont = {}
-                matcont[u'truth'],matcont[u'pred'],matcont[u'meas'] = ground_valid,valid_output['pred_orig'],measure_valid
-                hdf5storage.write(matcont, '.', self.log_dir+'/Data_Visualization_%d.mat' % (epoch_cnt), 
-                                  store_python_metadata=False, matlab_compatible=True)
-            if  Vloss <= min_val_loss: #original: Vloss <= min_val_loss: 
-                model_filename = self.save_model(self.saver, epoch_cnt, Vloss)
-                self.logger.info('Val loss decrease from %.4f to %.4f, saving to %s' % (min_val_loss, Vloss, model_filename))
-                min_val_loss,wait = Vloss,0
-            else:
-                wait += 1
-                if wait > self.patience:
-                    model_filename = self.save_model(self.saver, epoch_cnt, Vloss)
-                    self.logger.info('Val loss decrease from %.4f to %.4f, saving to %s' % (min_val_loss,Vloss,model_filename))                        
-                    self.logger.warn('Early stopping at epoch: %d' % (epoch_cnt)) 
-                    break
-            if epoch_cnt%15 == 0:  #original: Vloss <= min_val_loss: 
-                model_filename = self.save_model(self.saver, epoch_cnt, Vloss)
-                self.logger.info('Val loss decrease from %.4f to %.4f, saving to %s' % (min_val_loss, Vloss, model_filename))
-                
-            if Tloss <= min_Tval_loss: #original: Vloss <= min_val_loss: 
-                model_filename = self.save_model(self.saver, epoch_cnt, Vloss)
-                self.logger.info('Val loss decrease from %.4f to %.4f, saving to %s' % (min_val_loss, Vloss, model_filename))
-                min_val_loss = Tloss
-            epoch_cnt += 1
-            sys.stdout.flush()
-
+    
     def test(self):
         
         print ("Testing Started")

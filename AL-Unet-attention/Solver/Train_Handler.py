@@ -67,7 +67,7 @@ class Decoder_Handler(Basement_Handler):
     def data_assignment(self,dataset_name):
         # Division for train, test and validation
         model_config = self.model_config
-        set_train, set_test, set_valid, self.sense_mask, sample = Data_Division(dataset_name)
+        count_train, count_valid, set_train, set_test, set_valid, self.sense_mask, sample = Data_Division(dataset_name)
         
         # The value of the position is normalized (the value of lat and lon are all limited in range(0,1))
         scalar = limit_scalar(self.sense_mask)
@@ -78,8 +78,10 @@ class Decoder_Handler(Basement_Handler):
         
         self.set_train,disp_train = scalar.overlap_normalization(set_train)
         self.set_valid,disp_valid = scalar.overlap_normalization(set_valid)
-        self.train_size = int(np.ceil(float(disp_train[0])/self.batch_size))
-        self.valid_size = int(np.ceil(float(disp_valid[0])/self.batch_size))
+        #self.train_size = int(np.ceil(float(disp_train[0])/self.batch_size))
+        #self.valid_size = int(np.ceil(float(disp_valid[0])/self.batch_size))
+        self.train_size = int(count_train/self.batch_size)
+        self.valid_size = int(count_valid/self.batch_size)
         
     def train_test_valid_assignment(self):
         
@@ -200,35 +202,7 @@ class Decoder_Handler(Basement_Handler):
                 self.logger.info('Val loss decrease from %.4f to %.4f, saving to %s' % (min_val_loss, Vloss, model_filename))
                 min_val_loss = Tloss
             epoch_cnt += 1
-            sys.stdout.flush()
-
-    def test(self):
-        
-        print ("Testing Started")
-        self.restore()
-        
-        test_fetches = {'pred_orig':   self.Decoder_valid.decoded_image}
-        time_list = []
-        for tested_batch in range(0,self.test_size):
-            (measure_test1,ground_test,mask_test,netinit_test,index_test) =next(self.gen_test) #self.gen_test._next_()
-            print (index_test)
-            measure_test=np.expand_dims(measure_test1,-1)
-            #phi_phi=np.matmul(np.transpose(mask_test,[1,2,3,0]),np.transpose(mask_test,[1,2,0,3]))
-            feed_dict_test = {self.meas_sample:measure_test, 
-                              self.truth_sample:ground_test,                             
-                              self.initial_net:netinit_test,
-                              self.sense_matrix:mask_test}                              
-            start_time = time.time()
-            test_output = self.sess.run(test_fetches,feed_dict=feed_dict_test)
-            end_time = time.time()
-            time_list.append(end_time-start_time)
-            message = "Test [%d/%d] time %s"%(tested_batch+1,self.test_size,time_list[-1])
-            matcontent = {}
-            matcontent[u'truth'],matcontent[u'pred'],matcontent[u'meas'] = ground_test,test_output['pred_orig'],measure_test
-            hdf5storage.write(matcontent, '.', self.log_dir+'/Data_Visualization_%d.mat' % (tested_batch), 
-                              store_python_metadata=False, matlab_compatible=True)
-            print (message)
-            
+            sys.stdout.flush()              
         
     def calculate_scheduled_lr(self, epoch, min_lr=1e-10):
         decay_factor = int(math.ceil((epoch - self.lr_decay_epoch)/float(self.lr_decay_interval)))

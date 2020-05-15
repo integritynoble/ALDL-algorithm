@@ -51,9 +51,9 @@ class Depth_Decoder(Basement_TFModel):
                             weights_regularizer=slim.l2_regularizer(weight_decay),
                             normalizer_fn=slim.batch_norm,normalizer_params=batch_norm_params):
             network_inputs = (measurement, initial_net, sense_mat)
-            return self.encoder_decoder(network_inputs,is_training=self.is_training,dropout_keep_prob=self.keep_prob,reuse=reuse)
+            return self.decoder_flowchart(network_inputs,is_training=self.is_training,dropout_keep_prob=self.keep_prob,reuse=reuse)
         
-    def encoder_decoder(self, inputs, is_training=True, dropout_keep_prob=0.8, reuse=None, scope='generator'):
+    def decoder_flowchart(self, inputs, is_training=True, dropout_keep_prob=0.8, reuse=None, scope='generator'):
         (measurement, initial_net, sense_mat) = inputs
         self.LineAggre1,self.LineAggre2,self.ShrinkOpers,self.Multiplier1,self.Multiplier2 = [],[],[],[],[]
         with tf.variable_scope(scope, 'generator', [inputs], reuse=reuse):
@@ -86,7 +86,7 @@ class Depth_Decoder(Basement_TFModel):
                     result1,result2, multiplier1,multiplier2=self.LinearProj_mid(measurement, initial_net, sense_mat, self.LineAggre1[-1], 
                                                               self.ShrinkOpers[-1],self.Multiplier1[-1],self.Multiplier2[-1],stage+1)
                     self.LineAggre1.append(result1)                                           
-                    output = self.U_net(initial_net, self.LineAggre1[-1], stage+1)
+                    output = self.U_net(self.LineAggre1[-1], stage+1)
                     return output
                 
     def metric_opt(self, model_output, ground_truth):
@@ -201,10 +201,10 @@ class Depth_Decoder(Basement_TFModel):
    
     
         
-    def U_net(self, phi_T_y, shrinkage, stage):
+    def U_net(self, shrinkage, stage):
         '''
         Input Argument:
-            [batch, height, width, depth] phi_T_y: One step reconstruction initialization
+            [batch, height, width, depth] shrinkage: One step reconstruction initialization
         Return:
             [batch, height, width, depth] Reconstruction Result
         '''
@@ -220,8 +220,7 @@ class Depth_Decoder(Basement_TFModel):
                 net=slim.conv2d(net, 32, 3, stride=1, padding='SAME',scope='en_1_2')
 
                 end_points['encode_1'] = net 
-                net=slim.max_pool2d(net,2,stride=2,padding='SAME',scope='Pool1')
-                
+                net=slim.max_pool2d(net,2,stride=2,padding='SAME',scope='Pool1')                
 
 
                 net = slim.conv2d(net, 64, 3, stride=1, padding='SAME', scope='en_2_1')
@@ -234,8 +233,7 @@ class Depth_Decoder(Basement_TFModel):
                 net = slim.conv2d(net, 128, 3, stride=1, padding='SAME', scope='en_3_1')
                 net = slim.conv2d(net,128, 3, stride=1, padding='SAME', scope='en_3_2')
                 end_points['encode_3'] = net
-                net = slim.max_pool2d(net, 2, stride=2, padding='VALID', scope='Pool3')
-              
+                net = slim.max_pool2d(net, 2, stride=2, padding='VALID', scope='Pool3')              
 
                 #
                 net = slim.conv2d(net, 256, 3, stride=1, padding='SAME', scope='en_4_1')

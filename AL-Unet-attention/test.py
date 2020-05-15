@@ -5,15 +5,14 @@ import os
 import yaml
 import h5py
 
-from Solver.CUP_Handler import Decoder_Handler
+from Solver.Test_Handler import Decoder_Handler
 
 config_filename = './Solver/Config.yaml'
 scenario = 'NBA'
 
 def main():
-
-    #folder_id, config_id = 'NBA-Decoder-TNN', 'config-nba.yaml'C:\integrity\deeplearning\1\AL-Unet-attention\2\AL-Unet-attention\AL-Unet-attention\Result\Model\Boatman-AL-T0315092421-K0.80L0.020-RMSE
-    folder_id, config_id = 'Boatman-AL-T0501194720-K0.80L0.008-RMSE', 'config_175.yaml'
+   
+    folder_id, config_id = 'Boatman-AL-T0515144846-K0.80L0.008-RMSE', 'config_05.yaml'
     with open(config_filename) as handle:
         model_config = yaml.load(handle)
     log_dir = os.path.join(os.path.abspath('.'), model_config['result_dir'], model_config['result_model'], folder_id)
@@ -22,7 +21,7 @@ def main():
         model_config = yaml.load(handle)
     data_name = os.path.join(os.path.abspath('.'), 'Test_Data', model_config['category'], model_config['data_name'])
     
-    mask_name = os.path.join(os.path.abspath('.'),'Test_Data',model_config['category'],model_config['mask_name'])
+    mask_name = os.path.join(os.path.abspath('.'),'Test_Data',model_config['category'],model_config['code_name'])
         
     dataset_name = (data_name,mask_name)
     
@@ -32,7 +31,7 @@ def main():
     tf_config.gpu_options.allow_growth = True
 
     with tf.Session(config=tf_config) as sess:
-        Cube_Decoder = Test_Handler(dataset_name=dataset_name, model_config=model_config, sess = sess, is_training=False)
+        Cube_Decoder = Decoder_Handler(dataset_name=dataset_name, model_config=model_config, sess = sess, is_training=False)
         Cube_Decoder.test()
 
 if __name__ == '__main__':

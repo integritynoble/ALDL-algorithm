@@ -5,7 +5,7 @@ import yaml
 import os
 import h5py
 
-from Solver.CUP_Handler import Decoder_Handler
+from Solver.Train_Handler import Decoder_Handler
 
 config_filename = './Solver/Config.yaml'
 def main():
@@ -13,7 +13,7 @@ def main():
         model_config = yaml.load(handle)    
     data_name = os.path.join(os.path.abspath('..'),'Train_Data',model_config['category'],model_config['data_name'])
     
-    mask_name = os.path.join(os.path.abspath('..'),'Train_Data',model_config['category'],model_config['mask_name'])
+    mask_name = os.path.join(os.path.abspath('..'),'Train_Data',model_config['category'],model_config['code_name'])
         
     dataset_name = (data_name,mask_name)
     
@@ -23,7 +23,7 @@ def main():
     tf_config.gpu_options.allow_growth = True
 
     with tf.Session(config=tf_config) as sess:
-        Cube_Decoder = Train_Handler(dataset_name=dataset_name, model_config=model_config, sess = sess, is_training=True)
+        Cube_Decoder = Decoder_Handler(dataset_name=dataset_name, model_config=model_config, sess = sess, is_training=True)
         Cube_Decoder.train()
 
 if __name__ == '__main__':

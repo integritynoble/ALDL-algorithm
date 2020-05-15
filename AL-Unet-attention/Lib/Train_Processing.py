@@ -14,25 +14,35 @@ def Data_Division(dataset_name,experiment=True):
     """
     
     (data_name,mask_name),file_id_list,file_cnt_list = dataset_name,[],[]
-    
-    seg_direct = sio.loadmat(data_name+'_%d.mat'%(0))
+    seg_direct = sio.loadmat(data_name)
+    #seg_direct = sio.loadmat(data_name+'_%d.mat'%(0))
     #seg_direct =  h5py.File(data_name+'_%d.mat'%(0))
     
    # feature=h5py.File('C:\integrity\deeplearning\1\AL-Unet-attention\2\AL-Unet-attention\Train_Data\Boatman\Frame_0.mat')               #读取mat文件
     #seg_direct = feature['feature_data'][:] 
 
-    sample_truth,sample_meas = seg_direct['orig'],seg_direct['meas']
+    sample_truth,sample_meas = seg_direct['truth'],seg_direct['E']
     file_id_list.append(0)
-    file_cnt_list.append((seg_direct['orig'].shape[-1],seg_direct['step'][0][0]))
+    file_cnt_list.append((seg_direct['truth'].shape[-1],seg_direct['stepsize'][0][0]))
     print ('Test Group with %d samples step %d is recorded' % (file_cnt_list[-1][0],file_cnt_list[-1][1]))
     pair_train = (file_id_list,file_cnt_list)
     pair_valid = (file_id_list,file_cnt_list)
     pair_test  = (file_id_list,file_cnt_list)
+    valid_ratio=8
+    count1,count2=0,0
+    ind_end = sample_meas.shape[-1]
+    for i in range(ind_end):
+        if (i%valid_ratio==0):           
+            count2+= 1
+        else:            
+            count1+= 1    
+    count_train=count1
+    count_valid=count2 
     
     mask_file = sio.loadmat(mask_name+'.mat')
-    mask = mask_file['mask']
+    mask = mask_file['code']
     
-    return pair_train, pair_test, pair_valid, mask, (sample_meas.transpose([2,0,1]),sample_truth)
+    return count_train, count_valid, pair_train, pair_test, pair_valid, mask, (sample_meas.transpose([2,0,1]),sample_truth)
 
 def Data_Generator_File(dataset_name, sample_path, mask, batch_size, is_training=True):
     """
@@ -46,34 +56,28 @@ def Data_Generator_File(dataset_name, sample_path, mask, batch_size, is_training
     (height,width,ratio) = mask.shape
     valid_ratio=8
     
-    addmeasure,(num_frame,step_max) = sio.loadmat(data_name+'_%d.mat'%(file_ind[folder_id])),file_cnt[folder_id]
-    truth,measurement=addmeasure['orig'],addmeasure['meas']
+    #addmeasure,(num_frame,step_max) = sio.loadmat(data_name+'_%d.mat'%(file_ind[folder_id])),file_cnt[folder_id]
+    addmeasure,(num_frame,step_max) = sio.loadmat(data_name),file_cnt[folder_id]
+    truth,measurement=addmeasure['truth'],addmeasure['E']
     addmask=sio.loadmat(mask_name+'.mat')
-    mask2=addmask['mask2']
+    mask2=addmask['code2']
     step = np.random.choice(np.linspace(1,step_max,step_max),1,replace=False).astype(np.int16)[0]
-    #ind_end = truth.shape[-1]-(ratio-1)*step
-    #ind_end = measurement.shape[-1]-1
+    ind_valid,ind_train=[],[]    
     count1,count2=0,0
     ind_end = int(truth.shape[-1]/ratio) 
     for i in range(ind_end):
         if (i%valid_ratio==0):
+            ind_valid.append(i)
             count2+= 1
         else:
-            count1+= 1
-    ind_train=np.zeros(count1)        
-    ind_valid=np.zeros(count2)
-    count_train=count1
-    count_valid=count2
-    count1,count2=0,0
-    for i in range(ind_end):
-        if (i%valid_ratio==0):
-            ind_valid[count2]=i
-            count2+= 1
-        else:
-            ind_train[count1]=i
-            count1+= 1
-    index1 = np.random.choice(ind_train, size=ind_train, replace=False).astype(np.int16)
-    index2 = np.random.choice(ind_valid, size=ind_valid, replace=False).astype(np.int16)
+            ind_train.append(i)
+            count1+= 1    
+    count_train=int(count1/batch_size)*batch_size
+    count_valid=int(count2/batch_size)*batch_size     
+    #index1 = np.random.choice(count_train, size=count_train, replace=False).astype(np.int16)
+    #index2 = np.random.choice(count_valid, size=count_valid, replace=False).astype(np.int16)
+    index1 = np.random.choice(ind_train, size=count_train, replace=False).astype(np.int16)
+    index2 = np.random.choice(ind_valid, size=count_valid, replace=False).astype(np.int16)
     print ('File %d Imported with Step %d Samples Group %d' % (file_ind[folder_id],step,ind_end))
     count1,count2,sample_cnt,batch_cnt,list_measure,list_ground,list_mask,list_netinit,list_index = 0,0,0,0,[],[],[],[],[]
     
@@ -115,8 +119,8 @@ def Data_Generator_File(dataset_name, sample_path, mask, batch_size, is_training
                 folder_id = 0
             else:
                 folder_id += 1
-            sample_cnt = 0
-            truth,(num_frame,step_max) = sio.loadmat(data_name+'_%d.mat'%(file_ind[folder_id]))['orig'],file_cnt[folder_id]
+            sample_cnt,count1,count2 = 0,0,0           
+            truth,(num_frame,step_max) = sio.loadmat(data_name)['truth'],file_cnt[folder_id]
             step = np.random.choice(np.linspace(1,step_max,step_max),1,replace=False).astype(np.int16)[0]
             ind_end = int(truth.shape[-1]/ratio) 
             index = np.random.choice(ind_end, size=ind_end, replace=False).astype(np.int16)
