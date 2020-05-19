@@ -13,12 +13,13 @@ result_data: Test-Result
 # === Configure CUP Handler === #
 # Data Assignment
 batch_size: 2
-epochs: 250
+epochs: 280
 patience: 800  #800
 learning_rate: 0.008
 lr_decay: 0.4
 lr_decay_epoch: 20
 lr_decay_interval: 30 
+cross_validation: 8   #k-fold cross-validation , the number is k
 loss_func: RMSE
 upbound: 1
 max_grad_norm: 5.0

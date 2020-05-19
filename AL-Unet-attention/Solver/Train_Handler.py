@@ -22,9 +22,9 @@ class Decoder_Handler(Basement_Handler):
         self.data_assignment(dataset_name)
 
         # Data Generator
-        self.gen_train = Data_Generator_File(dataset_name,self.set_train,self.sense_mask,self.batch_size,is_training=True)
-        self.gen_valid = Data_Generator_File(dataset_name,self.set_valid,self.sense_mask,self.batch_size,is_training=False)
-        self.gen_test  = Data_Generator_File(dataset_name,self.set_test,self.sense_mask,self.batch_size,is_training=False)
+        self.gen_train = Data_Generator_File(dataset_name,self.set_train,self.sense_mask,self.batch_size,self.epochs,self.cross_validation,is_training=True)
+        self.gen_valid = Data_Generator_File(dataset_name,self.set_valid,self.sense_mask,self.batch_size,self.epochs,self.cross_validation,is_training=False)
+        self.gen_test  = Data_Generator_File(dataset_name,self.set_test,self.sense_mask,self.batch_size,self.epochs,self.cross_validation,is_training=False)
         
         # Define the general model and the corresponding input
         shape_meas = (self.batch_size,) + self.sense_mask.shape[:2] + (1,)
@@ -63,11 +63,12 @@ class Decoder_Handler(Basement_Handler):
         self.lr_decay_coe = float(config.get('lr_decay',0.1))
         self.lr_decay_epoch = int(config.get('lr_decay_epoch',20))
         self.lr_decay_interval = int(config.get('lr_decay_interval',10))
+        self.cross_validation = int(config.get('cross_validation',10))
 
     def data_assignment(self,dataset_name):
         # Division for train, test and validation
         model_config = self.model_config
-        count_train, count_valid, set_train, set_test, set_valid, self.sense_mask, sample = Data_Division(dataset_name)
+        count_train, count_valid, set_train, set_test, set_valid, self.sense_mask, sample = Data_Division(dataset_name,self.cross_validation)
         
         # The value of the position is normalized (the value of lat and lon are all limited in range(0,1))
         scalar = limit_scalar(self.sense_mask)
@@ -81,7 +82,10 @@ class Decoder_Handler(Basement_Handler):
         #self.train_size = int(np.ceil(float(disp_train[0])/self.batch_size))
         #self.valid_size = int(np.ceil(float(disp_valid[0])/self.batch_size))
         self.train_size = int(count_train/self.batch_size)
+        
         self.valid_size = int(count_valid/self.batch_size)
+        if self.valid_size==0:
+            self.valid_size=1
         
     def train_test_valid_assignment(self):
         

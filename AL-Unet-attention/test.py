@@ -12,7 +12,7 @@ scenario = 'NBA'
 
 def main():
    
-    folder_id, config_id = 'Boatman-AL-T0515144846-K0.80L0.008-RMSE', 'config_05.yaml'
+    folder_id, config_id = 'Boatman-AL-T0518165807-K0.80L0.008-RMSE', 'config_250.yaml'
     with open(config_filename) as handle:
         model_config = yaml.load(handle)
     log_dir = os.path.join(os.path.abspath('.'), model_config['result_dir'], model_config['result_model'], folder_id)
