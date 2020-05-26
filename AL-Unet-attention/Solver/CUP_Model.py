@@ -267,7 +267,7 @@ class Depth_Decoder(Basement_TFModel):
                 net = tf.concat([net, end_points['encode_3']], 3)
                 net = slim.conv2d(net, 128, 3, stride=1)
                 net = slim.conv2d(net, 128, 3, stride=1)
-                #net = self.attention(net, 128, 8, scope='att1')
+                net = self.attention(net, 128, 8, scope='att1')
                 
                 net=slim.conv2d_transpose(net,64,2,2,padding='SAME')
                 net = tf.concat([net, end_points['encode_2']], 3)
