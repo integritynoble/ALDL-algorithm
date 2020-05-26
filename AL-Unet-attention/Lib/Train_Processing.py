@@ -53,7 +53,7 @@ def Data_Generator_File(dataset_name, sample_path, mask, batch_size, epochs,cros
     addmeasure,(num_frame,step_max) = sio.loadmat(data_name),file_cnt[folder_id]
     truth,measurement=addmeasure['truth'],addmeasure['E']
     addmask=sio.loadmat(mask_name+'.mat')
-    mask2=addmask['code2']
+    mask2=addmask['code']
     step = np.random.choice(np.linspace(1,step_max,step_max),1,replace=False).astype(np.int16)[0]
     ind_valid,ind_train=[],[]    
     
