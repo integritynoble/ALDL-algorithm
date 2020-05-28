@@ -9,15 +9,15 @@ import math
 
 from Lib.Train_Processing import *
 from Lib.Utility import *
-from Solver.CUP_Model import Depth_Decoder
+from Solver.CUP_Model import CUP_Model
 from Solver.Base_Handler import Basement_Handler
 
 
-class Decoder_Handler(Basement_Handler):
+class Train_Handler(Basement_Handler):
     def __init__(self, dataset_name, model_config, sess, is_training=True):
         
         # Initialization of Configuration, Parameter and Datasets
-        super(Decoder_Handler, self).__init__(sess=sess, model_config=model_config, is_training=is_training)
+        super(Train_Handler, self).__init__(sess=sess, model_config=model_config, is_training=is_training)
         self.initial_parameter() #lr
         self.data_assignment(dataset_name)
 
@@ -93,10 +93,10 @@ class Decoder_Handler(Basement_Handler):
         
         with tf.name_scope('Train'):
             with tf.variable_scope('Depth_Decoder', reuse=False):
-                self.Decoder_train = Depth_Decoder(value_set,self.learning_rate,self.sess,self.model_config,is_training=True)
+                self.Decoder_train = CUP_Model(value_set,self.learning_rate,self.sess,self.model_config,is_training=True)
         with tf.name_scope('Val'):
             with tf.variable_scope('Depth_Decoder', reuse=True):
-                self.Decoder_valid = Depth_Decoder(value_set,self.learning_rate,self.sess,self.model_config,is_training=False)
+                self.Decoder_valid = CUP_Model(value_set,self.learning_rate,self.sess,self.model_config,is_training=False)
                 
     def train(self):
         self.sess.run(tf.global_variables_initializer())
