@@ -13,11 +13,11 @@ from Solver.CUP_Model import CUP_Model
 from Solver.Base_Handler import Basement_Handler
 
 
-class Decoder_Handler(Basement_Handler):
+class Test_Handler(Basement_Handler):
     def __init__(self, dataset_name, model_config, sess, is_training=True):
         
         # Initialization of Configuration, Parameter and Datasets
-        super(Decoder_Handler, self).__init__(sess=sess, model_config=model_config, is_training=is_training)
+        super(Test_Handler, self).__init__(sess=sess, model_config=model_config, is_training=is_training)
         self.initial_parameter() #lr
         self.data_assignment(dataset_name)
 
