@@ -9,11 +9,11 @@ import json
 from Lib.Utility import *
 from Solver.Base_TFModel import Basement_TFModel
 
-class Depth_Decoder(Basement_TFModel):
+class CUP_Model(Basement_TFModel):
     
     def __init__(self, value_sets, init_learning_rate, sess, config, is_training=True, *args, **kwargs):
         
-        super(Depth_Decoder, self).__init__(sess=sess, config=config, learning_rate=init_learning_rate,is_training=is_training)
+        super(CUP_Model, self).__init__(sess=sess, config=config, learning_rate=init_learning_rate,is_training=is_training)
         '''
         Arguments:
             measurement: [batch, height, width, 1] compressed measurement
