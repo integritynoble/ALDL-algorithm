@@ -27,7 +27,7 @@ for i in range(start_num,end_num+1):
     num +=1
 code=np.zeros((256,256,pic_video),dtype = None, order = 'C')
 for i in range(pic_video):
-    code[:,:,i]=np.roll(C,1,axis=0)
+    code[:,:,i]=np.roll(C,i,axis=0)
 E=np.zeros((256,256,video_num), dtype = None, order = 'C')
 for i in range(video_num):
     for j in range(pic_video):
