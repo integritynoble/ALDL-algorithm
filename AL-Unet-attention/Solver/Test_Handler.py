@@ -9,7 +9,7 @@ import math
 
 from Lib.Test_Processing import *
 from Lib.Utility import *
-from Solver.CUP_Model import Depth_Decoder
+from Solver.CUP_Model import CUP_Model
 from Solver.Base_Handler import Basement_Handler
 
 
@@ -87,10 +87,10 @@ class Decoder_Handler(Basement_Handler):
         
         with tf.name_scope('Train'):
             with tf.variable_scope('Depth_Decoder', reuse=False):
-                self.Decoder_train = Depth_Decoder(value_set,self.learning_rate,self.sess,self.model_config,is_training=True)
+                self.Decoder_train = CUP_Model(value_set,self.learning_rate,self.sess,self.model_config,is_training=True)
         with tf.name_scope('Val'):
             with tf.variable_scope('Depth_Decoder', reuse=True):
-                self.Decoder_valid = Depth_Decoder(value_set,self.learning_rate,self.sess,self.model_config,is_training=False)
+                self.Decoder_valid = CUP_Model(value_set,self.learning_rate,self.sess,self.model_config,is_training=False)
                 
     
     def test(self):
