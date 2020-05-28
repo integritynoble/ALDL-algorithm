@@ -5,7 +5,7 @@ import os
 import yaml
 import h5py
 
-from Solver.Test_Handler import Decoder_Handler
+from Solver.Test_Handler import Test_Handler
 
 config_filename = './Solver/Config.yaml'
 scenario = 'NBA'
@@ -31,7 +31,7 @@ def main():
     tf_config.gpu_options.allow_growth = True
 
     with tf.Session(config=tf_config) as sess:
-        Cube_Decoder = Decoder_Handler(dataset_name=dataset_name, model_config=model_config, sess = sess, is_training=False)
+        Cube_Decoder = Test_Handler(dataset_name=dataset_name, model_config=model_config, sess = sess, is_training=False)
         Cube_Decoder.test()
 
 if __name__ == '__main__':
