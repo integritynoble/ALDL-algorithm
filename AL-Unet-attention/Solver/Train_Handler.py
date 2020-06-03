@@ -86,6 +86,7 @@ class Train_Handler(Basement_Handler):
         self.valid_size = int(count_valid/self.batch_size)
         if self.valid_size==0:
             self.valid_size=1
+            self.train_size -=1
         
     def train_test_valid_assignment(self):
         
