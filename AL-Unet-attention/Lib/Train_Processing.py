@@ -65,6 +65,7 @@ def Data_Generator_File(dataset_name, sample_path, mask, batch_size, epochs,cros
     valid_size = int(count_valid/batch_size) 
     if valid_size==0:
         valid_size=1
+        train_size -=1
     count_valid=valid_size*batch_size
     count_train=train_size*batch_size
     all1=count_valid+count_train
