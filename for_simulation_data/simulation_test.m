@@ -27,7 +27,7 @@ load('.\train\boatman\Code.mat')
 mask=code;
 for i=1:video_num
     for j=1:pic_video
-        orig(:,:,i+j-1)=circshift(orig1(:,:,i+j-1),[j 0]);
+        orig(:,:,(i-1)*8+j)=circshift(orig1(:,:,(i-1)*8+j),[j 0]);
     end
    
     mask1=double(mask);
