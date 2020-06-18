@@ -109,6 +109,7 @@ def Data_Generator_File(dataset_name, sample_path, mask, batch_size, epochs,cros
                 count1 += 1
                 if (count1==count_train):
                     sample_cnt=1
+                    epoch_cnt1 +=1
             else:
                 ind_set = valid_c[epoch_cnt1][count2]
                 count2 += 1
