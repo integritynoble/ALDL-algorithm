@@ -10,10 +10,12 @@ address='./boatman_image/'
 start_num=860
 end_num=875
 pic_video=8
+ver_num=256
+hor_num=256
 picture_num=end_num-start_num+1
 video_num=int(picture_num/pic_video)
-orig1=np.zeros((256,256,picture_num), dtype = None, order = 'C')
-orig=np.zeros((256,256,picture_num), dtype = None, order = 'C')
+orig1=np.zeros((ver_num,hor_num,picture_num), dtype = None, order = 'C')
+orig=np.zeros((ver_num,hor_num,picture_num), dtype = None, order = 'C')
 #open(newaddress,"w+") 
 def Normalize(data):
     range1 = np.max(data) - np.min(data)
@@ -26,11 +28,11 @@ for i in range(start_num,end_num+1):
     orig1[:,:,num]=Normalize(mpimg.imread(address2))
     num +=1
 code=sio.loadmat('./train/boatmanp/Code.mat')['code']
-E=np.zeros((256,256,video_num), dtype =None, order = 'C')
+E=np.zeros((ver_num,hor_num,video_num), dtype =None, order = 'C')
 for i in range(video_num):
     for j in range(pic_video):
-        orig[:,:,i*8+j]=np.roll(orig1[:,:,i*8+j],j,axis=0)
-    B=np.multiply(orig[:,:,i*8:(i+1)*8],code)
+        orig[:,:,i*pic_video+j]=np.roll(orig1[:,:,i*pic_video+j],j,axis=0)
+    B=np.multiply(orig[:,:,i*pic_video:(i+1)*pic_video],code)
     E[:,:,i]=np.sum(B,axis=2)
 stepsize=1
 truth=orig
