@@ -38,8 +38,8 @@ for i in range(video_num):
     E[:,:,i]=np.sum(B,axis=2)
 stepsize=1
 truth=orig
-sio.savemat('./train/boatmanp/Data.mat',{'E':E,'stepsize':stepsize,'truth':orig})
-sio.savemat('./train/boatmanp/Code.mat',{'code':code})
+sio.savemat('./train/boatman/Data.mat',{'E':E,'stepsize':stepsize,'truth':orig})
+sio.savemat('./train/boatman/Code.mat',{'code':code})
 video_num=picture_num-7  
     
 

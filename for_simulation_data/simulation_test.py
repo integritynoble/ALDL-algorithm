@@ -27,7 +27,7 @@ for i in range(start_num,end_num+1):
     address2=address1+'.bmp'    
     orig1[:,:,num]=Normalize(mpimg.imread(address2))
     num +=1
-code=sio.loadmat('./train/boatmanp/Code.mat')['code']
+code=sio.loadmat('./train/boatman/Code.mat')['code']
 E=np.zeros((ver_num,hor_num,video_num), dtype =None, order = 'C')
 for i in range(video_num):
     for j in range(pic_video):
@@ -36,8 +36,8 @@ for i in range(video_num):
     E[:,:,i]=np.sum(B,axis=2)
 stepsize=1
 truth=orig
-sio.savemat('./test/boatmanp/Data.mat',{'E':E,'stepsize':stepsize,'truth':orig})
-sio.savemat('./test/boatmanp/Code.mat',{'code':code})
+sio.savemat('./test/boatman/Data.mat',{'E':E,'stepsize':stepsize,'truth':orig})
+sio.savemat('./test/boatman/Code.mat',{'code':code})
 
     
 
