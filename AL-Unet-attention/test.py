@@ -6,10 +6,7 @@ import yaml
 import h5py
 
 from Solver.Test_Handler import Test_Handler
-
 config_filename = './Solver/Config.yaml'
-scenario = 'NBA'
-
 def main():
    
     folder_id, config_id = 'Boatman-AL-T0518165807-K0.80L0.008-RMSE', 'config_250.yaml'
